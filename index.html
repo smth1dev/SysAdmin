@@ -1,0 +1,137 @@
+<html>
+    <head>
+        <script type="text/javascript" src="./chart.min.js"></script>
+        <script  type="text/javascript" src="./jquery.min.js"></script>
+    </head>
+    <body>
+        <title> SysAdmin Node App </title>
+        <div id="cpuUsage"></div> </br>
+        <div id="cpuInfo"></div> </br>
+        <canvas id="cpuChart" width="400" height="200"></canvas> </br></br>
+        <div id="memUsage"></div> </br>
+        <canvas id="memChart" width="400" height="200"></canvas>
+        
+        <script type="text/javascript">
+             var cpuData = {
+    labels: [""],
+    datasets: [
+        {
+            label: "My First dataset",
+            fillColor: "rgba(20,220,20,0.2)",
+            strokeColor: "rgba(20,220,20,1)",
+            pointColor: "rgba(20,220,20,1)",
+            pointStrokeColor: "#f22",
+            pointHighlightFill: "#f22",
+            pointHighlightStroke: "rgba(20,220,220,1)",
+            data: [0]
+        }
+    ]
+};
+var memData = {
+    labels: [""],
+    datasets: [
+        {
+            label: "My First dataset",
+            fillColor: "rgba(20,220,20,0.2)",
+            strokeColor: "rgba(20,220,20,1)",
+            pointColor: "rgba(20,220,20,1)",
+            pointStrokeColor: "#f22",
+            pointHighlightFill: "#f22",
+            pointHighlightStroke: "rgba(20,220,220,1)",
+            data: [0]
+        }
+    ]
+};
+
+            
+            
+            
+            // Get context with jQuery - using jQuery's .get() method.
+            var ctxCpu = document.getElementById('cpuChart').getContext('2d');
+            // This will get the first returned node in the jQuery collection.
+            var cpuChart = new Chart(ctxCpu).Line(cpuData,{
+                //Boolean - Whether to show vertical lines (except Y axis)
+                scaleShowVerticalLines: false,
+                pointDot : false,
+    scaleOverride : true,
+        scaleSteps : 10,
+        scaleStepWidth : 10,
+        scaleStartValue : 0 
+            });
+              // Get context with jQuery - using jQuery's .get() method.
+            var ctxMem = document.getElementById('memChart').getContext('2d');
+            // This will get the first returned node in the jQuery collection.
+            var memChart = new Chart(ctxMem).Line(memData,{
+                //Boolean - Whether to show vertical lines (except Y axis)
+                scaleShowVerticalLines: false,
+                pointDot : false,
+    scaleOverride : true,
+        scaleSteps : 10,
+        scaleStepWidth : 10,
+        scaleStartValue : 0 
+            })
+
+        var serverInfo;
+     $.getJSON("http://localhost:3000/cpuInfo?callback=?", function(info){
+           serverInfo = info;
+          document.getElementById('cpuInfo').innerHTML = info.model + "</br>" + "Cores : "+info.cores ;
+         });
+
+window.setInterval(function(){
+   
+  $.getJSON("http://localhost:3000/psServerStat?callback=?", function(result){
+       
+          
+            //response data are now in the result variable
+            //alert(result.cpu);
+                 document.getElementById('cpuUsage').innerHTML = parseFloat(result.cpu)/serverInfo.cores + " % CPU Usage";
+                 document.getElementById('memUsage').innerHTML = parseFloat(result.mem) + " % Memory Usage";
+              
+                  cpuChart.addData([parseFloat(result.cpu)/2], "");
+                // document.getElementById('cpuUsage').innerHTML = JSON.stringify(myLineChart.datasets[0]);
+                 
+                 if(parseFloat(result.cpu)>80)
+                 {
+                     cpuChart.datasets[0].strokeColor ="rgba(255,0,0,1)";
+                     cpuChart.datasets[0].fillColor = "rgba(220,20,20,0.2)";
+                 }else{
+                      cpuChart.datasets[0].strokeColor ="rgba(20,220,20,1)";
+                     cpuChart.datasets[0].fillColor = "rgba(20,220,20,0.2)";
+                 }
+                // // Would update the first dataset's value of 'March' to be 50
+                if(cpuChart.datasets[0].points.length>50)
+                {
+                    cpuChart.removeData();
+                }
+               // document.getElementById('cpuUsage').innerHTML = parseFloat(result.mem) + " % CPU Usage";
+              
+              
+                  memChart.addData([parseFloat(result.mem)], "");
+                // document.getElementById('cpuUsage').innerHTML = JSON.stringify(myLineChart.datasets[0]);
+                 
+                 if(parseFloat(result.mem)>80)
+                 {
+                     memChart.datasets[0].strokeColor ="rgba(255,0,0,1)";
+                     memChart.datasets[0].fillColor = "rgba(220,20,20,0.2)";
+                 }else{
+                      memChart.datasets[0].strokeColor ="rgba(20,220,20,1)";
+                     memChart.datasets[0].fillColor = "rgba(20,220,20,0.2)";
+                 }
+                // // Would update the first dataset's value of 'March' to be 50
+                if(memChart.datasets[0].points.length>50)
+                {
+                    memChart.removeData();
+                }
+         });
+     
+}, 500);
+
+
+                    
+
+ </script>
+
+
+    </body>
+    
+</html>
